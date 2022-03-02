@@ -14,10 +14,14 @@ import RatingsController from './controllers/ratings.controller';
 import RatingsService from './services/ratings.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
+    ConfigModule.forRoot({
+      isGlobal: true
+    })
+    ,TypeOrmModule.forRoot({
       type: 'sqlite',
       database: 'sqlite.db',
       synchronize: true,
