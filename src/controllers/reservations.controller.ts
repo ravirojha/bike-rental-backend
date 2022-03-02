@@ -12,7 +12,6 @@ export default class ReservationsController {
   @UseGuards(AdminGuard)
   @Get('')
   async get(@Query() query, @Req() req) {
-    console.log('*******************');
     return this.reservationsService.get(query.page, req.user);
   }
 

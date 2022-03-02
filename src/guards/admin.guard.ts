@@ -8,7 +8,8 @@ export default class AdminGuard implements CanActivate {
     const user = await verifyJwtToken(token);
     if (user) {
       request.user = user;
-      if (user.isAdmin) {
+      if (user.isManager) {
+        console.log(user,'=============')
         return true;
       } else throw new ForbiddenException();
     } else throw new UnauthorizedException();
