@@ -56,10 +56,11 @@ export default class UsersService {
   async add({name, email, password, isManager}, authUser) {
     const check = await User.find({
       where: {
-        email
+        email: email.toLowerCase()
       }
     })
-    if(!check) {
+    console.log(check,'%%%%%%%%%%%%%%%');
+    if(check.length === 0) {
     const user = new User();
     user.name = name;
     user.email = email;
@@ -76,7 +77,7 @@ export default class UsersService {
         email: email.toLowerCase()
       }
     })
-    if(!check) {
+    if(check.length === 0) {
       const user = await User.findOne(id);
       if (user) {
         user.name = name;
