@@ -9,7 +9,6 @@ export default class AdminGuard implements CanActivate {
     if (user) {
       request.user = user;
       if (user.isManager) {
-        console.log(user,'=============')
         return true;
       } else throw new ForbiddenException();
     } else throw new UnauthorizedException();

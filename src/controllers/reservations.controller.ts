@@ -38,7 +38,6 @@ export default class ReservationsController {
   @UseGuards(AuthGuard)
   @Put("/:id")
   async cancelReservation(@Param("id") id: string,@Body() body, @Req() req) {
-    console.log(id,body);
     const { userId, bikeId, startDate, endDate} = JoiValidate(CancelSchema, body);
     return this.reservationsService.cancel( id, {userId, bikeId, startDate, endDate }, req.user);
   }

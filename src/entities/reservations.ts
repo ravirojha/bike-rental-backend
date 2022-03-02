@@ -11,11 +11,15 @@ export default class Reservation extends BaseEntity {
 @Column() endDate: string;
 @Column({ default: 'ACTIVE' }) status: 'ACTIVE' | 'INACTIVE';
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, {
+    onDelete: 'CASCADE'
+  })
 @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
   user: User;
 
-@ManyToOne(() => Bike)
+@ManyToOne(() => Bike, {
+  onDelete: 'CASCADE'
+})
 @JoinColumn({ name: 'bikeId', referencedColumnName: 'id' })
   bike: Bike;
 }

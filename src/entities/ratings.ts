@@ -10,11 +10,15 @@ export default class Rating extends BaseEntity {
   @Column() rating: number;
   @Column() reservationId: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, {
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'userId', referencedColumnName: 'id' })
   user: User;
 
-  @ManyToOne(() => Bike)
+  @ManyToOne(() => Bike, {
+    onDelete: 'CASCADE'
+  })
   @JoinColumn({ name: 'bikeId', referencedColumnName: 'id' })
   bike: Bike;
 

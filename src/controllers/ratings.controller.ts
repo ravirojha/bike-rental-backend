@@ -15,7 +15,6 @@ export default class RatingsController {
 
   @Post('')
   async add(@Body() body, @Req() req) {
-    console.log(body, '++++++++++++++++');
     const {resId, userId, bikeId, rating} = JoiValidate(RatingSchema, body);
     return this.ratingsService.addRating({resId, userId, bikeId, rating}, req.user);
   }

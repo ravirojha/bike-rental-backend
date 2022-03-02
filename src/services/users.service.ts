@@ -3,7 +3,6 @@ import * as Bcryptjs from 'bcryptjs';
 import * as Jwt from 'jsonwebtoken';
 import User from '../entities/users';
 import { JwtSecret, PageSize } from '../utils';
-import Bike from '../entities/bikes';
 
 @Injectable()
 export default class UsersService {
@@ -17,7 +16,6 @@ export default class UsersService {
 
     if (user) {
       if (Bcryptjs.compareSync(password, user.password)) {
-        console.log(user);
         return {
           ...user,
           password: undefined,
@@ -49,13 +47,19 @@ export default class UsersService {
       skip: (page - 1) * PageSize,
     });
 
-    const totalUserCount = await Bike.count();
+    const totalUserCount = await User.count();
     const pageCount = Math.ceil(totalUserCount / PageSize);
 
     return { users, page, pageCount };
   }
 
   async add({name, email, password, isManager}, authUser) {
+    const check = await User.find({
+      where: {
+        email
+      }
+    })
+    if(!check) {
     const user = new User();
     user.name = name;
     user.email = email;
@@ -63,28 +67,38 @@ export default class UsersService {
     user.isManager = isManager;
     await user.save();
     return user;
+    } else throw new HttpException("User email already exists", 400);
   }
 
   async update(id, {name, email, password, isManager}, authUser) {
-    const user = await User.findOne(id);
-    if(user) {
-      user.name = name;
-      user.email = email;
-      if(password) {
-        user.password = Bcryptjs.hashSync(password, 10);
+    const check = await User.find({
+      where: {
+        email: email.toLowerCase()
       }
-      user.isManager = isManager;
-      await user.save();
-      return user;
-    } else throw new NotFoundException();
+    })
+    if(!check) {
+      const user = await User.findOne(id);
+      if (user) {
+        user.name = name;
+        user.email = email;
+        if (password) {
+          user.password = Bcryptjs.hashSync(password, 10);
+        }
+        user.isManager = isManager;
+        await user.save();
+        return user;
+      } else throw new NotFoundException();
+    } else throw new HttpException('Email already exists', 400)
   }
 
   async delete(id, authUser) {
-    const user = User.findOne(id);
-    if (user) {
-      await User.delete(id);
-      return {};
-    } else throw new NotFoundException();
+    const user = await User.findOne(id);
+    if (user.id !== authUser.id) {
+      if (user) {
+        await User.delete(id);
+        return {};
+      } else throw new NotFoundException();
+    } else throw new HttpException("User cannot delete oneself", 400)
   }
 
 }
