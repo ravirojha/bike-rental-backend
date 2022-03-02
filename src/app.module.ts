@@ -12,6 +12,8 @@ import ReservationsService from './services/reservations.service';
 import Rating from './entities/ratings';
 import RatingsController from './controllers/ratings.controller';
 import RatingsService from './services/ratings.service';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import RatingsService from './services/ratings.service';
       logging: true,
     }),
   ],
-  controllers: [BikeController, UsersController, ReservationsController,RatingsController],
-  providers: [BikeService, UsersService, ReservationsService, RatingsService],
+  controllers: [AppController,BikeController, UsersController, ReservationsController,RatingsController],
+  providers: [AppService, BikeService, UsersService, ReservationsService, RatingsService],
 })
 export class AppModule {}
