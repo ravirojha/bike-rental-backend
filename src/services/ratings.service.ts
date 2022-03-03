@@ -1,6 +1,7 @@
 import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import Bike from '../entities/bikes';
 import Rating from '../entities/ratings';
+import Reservation from '../entities/reservations';
 
 @Injectable()
 export default class RatingsService {
@@ -18,14 +19,10 @@ export default class RatingsService {
 
 
   async addRating({rating, resId, userId, bikeId}, authUser) {
-    const bike = await Bike.findOne({
-      where: {
-        id: bikeId
-      }
-    });
+    const bike = await Bike.findOne(bikeId);
     if (bike) {
       if(userId === authUser.id) {
-        const reservation = await Bike.findOne(resId);
+        const reservation = await Reservation.findOne(resId);
         if (reservation.status === 'CANCELLED')
           throw new HttpException('Cannot rate cancelled reservation', 400);
         else {
