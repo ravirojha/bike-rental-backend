@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import Bike from '../entities/bikes';
 import Rating from '../entities/ratings';
 
@@ -23,26 +23,33 @@ export default class RatingsService {
         id: bikeId
       }
     });
+    if (bike) {
+      if(userId === authUser.id) {
+        const reservation = await Bike.findOne(resId);
+        if (reservation.status === 'CANCELLED')
+          throw new HttpException('Cannot rate cancelled reservation', 400);
+        else {
+          const rate = new Rating();
+          rate.userId = userId;
+          rate.bikeId = bikeId;
+          rate.rating = rating;
+          rate.reservationId = resId;
+          await rate.save();
 
-    const rate = new Rating();
-    rate.userId = userId;
-    rate.bikeId = bikeId;
-    rate.rating = rating;
-    rate.reservationId = resId;
-    await rate.save();
+          const allRatings = await Rating.find({
+            where: {
+              bikeId
+            }
+          });
 
-    const allRatings = await Rating.find({
-      where: {
-        bikeId
-      }
-    });
+          const totalRating = allRatings.reduce((prev, curr) => curr.rating + prev, 0)
 
-    const totalRating = allRatings.reduce((prev, curr) => curr.rating + prev, 0)
-    if(bike) {
-      bike.rating = totalRating/allRatings.length;
-      await bike.save();
-    }
-    return rate;
+          bike.rating = totalRating / allRatings.length;
+          await bike.save();
+          return rate;
+        }
+      } else throw new HttpException(`Cannot rate other user's reservation`,400)
+    } else throw new NotFoundException();
   }
 
 }

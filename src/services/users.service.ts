@@ -59,7 +59,6 @@ export default class UsersService {
         email: email.toLowerCase()
       }
     })
-    console.log(check,'%%%%%%%%%%%%%%%');
     if(check.length === 0) {
     const user = new User();
     user.name = name;
@@ -72,24 +71,29 @@ export default class UsersService {
   }
 
   async update(id, {name, email, password, isManager}, authUser) {
-    const check = await User.find({
-      where: {
-        email: email.toLowerCase()
-      }
-    })
-    if(check.length === 0) {
-      const user = await User.findOne(id);
-      if (user) {
-        user.name = name;
-        user.email = email;
-        if (password) {
-          user.password = Bcryptjs.hashSync(password, 10);
-        }
-        user.isManager = isManager;
-        await user.save();
-        return user;
+    const userById = await User.findOne(id)
+    if (authUser.isManager && isManager === false) {
+      throw new HttpException('Cannot change role for self', 400)
+    }
+    else {
+      if (userById) {
+        const userByEmail = await User.findOne({
+          where: {
+            email: email.toLowerCase()
+          }
+        })
+        if (!userByEmail || (userByEmail.id) == (id)) {
+          userById.name = name;
+          userById.email = email;
+          if (password) {
+            userById.password = Bcryptjs.hashSync(password, 10);
+          }
+          userById.isManager = isManager;
+          await userById.save();
+          return userById;
+        } else throw new HttpException('Email already exists', 400);
       } else throw new NotFoundException();
-    } else throw new HttpException('Email already exists', 400)
+    }
   }
 
   async delete(id, authUser) {

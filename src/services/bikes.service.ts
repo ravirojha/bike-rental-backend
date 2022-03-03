@@ -33,33 +33,16 @@ export default class BikeService {
 
 
     if (startDate && endDate) {
-      const resData = await getRepository(Reservation)
-        .createQueryBuilder("res")
-        .select("res.bikeId")
-        .where("res.startDate > :startDate AND res.startDate < :endDate", {
-          startDate: `${startDate}`,
-          endDate: `${endDate}`
-        })
-        .orWhere("res.startDate < :startDate AND (res.startDate > :startDate AND res.endDate < :endDate)", {
-          startDate: `${startDate}`,
-          endDate: `${endDate}`
-        })
-        .orWhere("res.startDate < :startDate AND res.endDate > :endDate", {
-          startDate: `${startDate}`,
-          endDate: `${endDate}`
-        })
-        .getMany();
-
-      const ids = resData.map((bikeId) => bikeId.bikeId);
+      const nonBookedBikes = await this.getNonBookedBikes({ startDate, endDate });
 
       bikeData = bikeData.filter((bike) => {
         let flag = false;
-        ids.forEach((id) => {
+        nonBookedBikes.forEach((id) => {
           if (bike.id === id) {
             flag = true;
           }
         })
-        if (flag == false)
+        if (flag)
           return bike;
       })
     }
@@ -98,6 +81,24 @@ export default class BikeService {
       await bike.save();
       return bike;
     } else throw new NotFoundException();
+  }
+
+  private async getNonBookedBikes({ startDate, endDate, }): Promise<number[]> {
+    const reservations = await getRepository(Reservation)
+      .createQueryBuilder('res')
+      .where(
+        'res.status = :status and ((res.endDate between :startDate and :endDate) or ' +
+        '(res.startDate between :startDate and :endDate) or ' +
+        '(res.startDate < :startDate and res.endDate > :endDate))',
+        { startDate, endDate, status: 'active' },
+      )
+      .getMany();
+    const reservedBikeIds = reservations.map((r) => r.bikeId);
+    const allBikes = await Bike.find({});
+    const notBookedBikes = allBikes
+      .filter((b) => !reservedBikeIds.includes(b.id))
+      .map((b) => b.id);
+    return notBookedBikes;
   }
 }
 

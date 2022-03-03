@@ -50,7 +50,7 @@ const bootstrap = async () => {
     const to = randDate.format("YYYY-MM-DD");
     r.startDate = from;
     r.endDate = to;
-    r.status = moment(from).format() > moment().format() ? 'ACTIVE' : 'INACTIVE';
+    r.status = 'ACTIVE'
     reservations.push(r);
   }
   await Reservation.save(reservations);

@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException, Res } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException, Res } from '@nestjs/common';
 import Reservation from '../entities/reservations';
 import { PageSize } from '../utils';
+import { getRepository } from 'typeorm';
+import Bike from '../entities/bikes';
 
 @Injectable()
 export default class ReservationsService {
@@ -47,13 +49,20 @@ export default class ReservationsService {
   }
 
   async reserve({userId, bikeId, startDate, endDate}, authUser) {
-    const reservation = new Reservation();
-    reservation.userId = userId;
-    reservation.bikeId = bikeId;
-    reservation.startDate = startDate;
-    reservation.endDate = endDate;
-    await reservation.save();
-    return reservation;
+    let nonBookedBikes = await this.getNonBookedBikes({ startDate, endDate });
+    if(!nonBookedBikes.includes(bikeId)) {
+      throw new HttpException('Bike is already booked for this date', 400)
+    }
+    const bike = await Bike.findOne(bikeId);
+    if(bike) {
+      const reservation = new Reservation();
+      reservation.userId = userId;
+      reservation.bikeId = bikeId;
+      reservation.startDate = startDate;
+      reservation.endDate = endDate;
+      await reservation.save();
+      return reservation;
+    } else throw new NotFoundException();
   }
 
   async cancel( id, {userId, bikeId, startDate, endDate }, authUser) {
@@ -63,9 +72,27 @@ export default class ReservationsService {
       reservation.bikeId = bikeId;
       reservation.startDate = startDate;
       reservation.endDate = endDate;
-      reservation.status = "INACTIVE"
+      reservation.status = "CANCELLED"
       await reservation.save();
       return reservation;
     } else throw new NotFoundException();
+  }
+
+  private async getNonBookedBikes({ startDate, endDate, }): Promise<number[]> {
+    const reservations = await getRepository(Reservation)
+      .createQueryBuilder('res')
+      .where(
+        'res.status = :status and ((res.endDate between :startDate and :endDate) or ' +
+        '(res.startDate between :startDate and :endDate) or ' +
+        '(res.startDate < :startDate and res.endDate > :endDate))',
+        { startDate, endDate, status: 'ACTIVE' },
+      )
+      .getMany();
+    const reservedBikeIds = reservations.map((r) => r.bikeId);
+    const allBikes = await Bike.find({});
+    const notBookedBikes = allBikes
+      .filter((b) => !reservedBikeIds.includes(b.id))
+      .map((b) => b.id);
+    return notBookedBikes;
   }
 }

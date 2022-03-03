@@ -9,7 +9,7 @@ export default class Reservation extends BaseEntity {
 @Column() bikeId: number;
 @Column() startDate: string;
 @Column() endDate: string;
-@Column({ default: 'ACTIVE' }) status: 'ACTIVE' | 'INACTIVE';
+@Column({ default: 'ACTIVE' }) status: 'ACTIVE' | 'CANCELLED';
 
   @ManyToOne(() => User, {
     onDelete: 'CASCADE'
