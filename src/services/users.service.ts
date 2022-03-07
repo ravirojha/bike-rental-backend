@@ -72,7 +72,7 @@ export default class UsersService {
 
   async update(id, {name, email, password, isManager}, authUser) {
     const userById = await User.findOne(id)
-    if (authUser.isManager && isManager === false) {
+    if (authUser.id === id && authUser.isManager && isManager === false) {
       throw new HttpException('Cannot change role for self', 400)
     }
     else {
