@@ -1,6 +1,7 @@
 # Bike Rental Application
 
-Link to frontend - https://github.com/ravirojha/bike-rental-frontend.    
+Link to frontend - https://github.com/ravirojha/bike-rental-frontend.   
+Live app Link - https://rentabike.netlify.app/.   
 
 ## Technologies Used
 
